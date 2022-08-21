@@ -5,16 +5,20 @@ from Service.NewTgMsgSubject import NewTgMsgSubject
 from Instruction.TgBot import TgBot
 from Service.TgBotService import TgBotService
 
-def SetConfig():
-    c = conf()
-    tgBot = TgBot()
-    tgBotService = TgBotService()
-    newDeerMsgObs= NewTgMsgObserver()
-    newDeerMsgSub = NewTgMsgSubject()
-    newDeerMsgSub.add(newDeerMsgObs)
+def Initial():
+    # init config
+    conf()
+    # init tg bot
+    TgBot()
+    TgBotService()
+    # regist observer
+    newTgMsgObs= NewTgMsgObserver()
+    newTgMsgSub = NewTgMsgSubject()
+    newTgMsgSub.add(newTgMsgObs)
+    # init db
 
 if __name__ == "__main__":
-    SetConfig()
+    Initial()
     sub = NewTgMsgSubject()
 
     # polling in the end, to avoid thread 
