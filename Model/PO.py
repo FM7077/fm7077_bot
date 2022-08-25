@@ -1,10 +1,11 @@
 class User():    
     def __init__(self, d=None) -> None:
-        self.id = ""
         self.TgFirstName = ""
         self.TgName = ""
         self.TgID = ""
+        self.TgChatID = ""
         self.PushDeerID = ""
+        self.Language = ""
         if d is not None:
             for key, value in d.items():
                 setattr(self, key, value)
@@ -19,8 +20,10 @@ class WeatherSub():
         self.id = ""
         self.UserID = ""
         self.IsSubscribe = False
+        self.IsSubAlert = True
         self.SubLongitude = 0
         self.SubLatitude = 0
+        self.LastAlert = ""
         if d is not None:
             for key, value in d.items():
                 setattr(self, key, value)

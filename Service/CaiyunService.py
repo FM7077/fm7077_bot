@@ -3,7 +3,8 @@ from .Config import Config as conf
 import requests
 import json
 import logging
-from Model.Enum import skycon
+from Model.Enum import skycon, LanguageList as ll
+from Model.Language import LANG
 
 class CaiyunService():
     def __init__(self) -> None:
@@ -39,50 +40,46 @@ class CaiyunService():
         else:
             return skycon[defaultSkycon].value
 
-    def get_rain_msg(self, precipitation, defaultSkycon):
-        local = ''
+    def get_rain_msg(self, precipitation, defaultSkycon, lang):
         nearest = ''
         if(precipitation['local']['intensity'] >= 0.08):
             return f"""Its {self.get_rain_type(precipitation['local']['intensity'], defaultSkycon)} ({precipitation['local']['intensity']}mm/h) now"""
         elif(precipitation['nearest']['intensity'] >= 0.08):
             nearest = self.get_rain_type(precipitation['nearest']['intensity'], defaultSkycon)
             if 'RAIN' in nearest:
-                nearest = 'rain cloud 🌧️'
+                nearest = lang.l(ll.WR_RAIN_MSG_RAIN)
             elif 'SNOW' in nearest:
-                nearest = 'snow cloud ❄️'
+                nearest = lang.l(ll.WR_RAIN_MSG_SNOW)
             else:
-                nearest = 'cloud ☁️'
-            return f"""the nearest {nearest} is {precipitation['nearest']['distance']}Km away"""
-        return 'is no rain now'
+                nearest = lang.l(ll.WR_RAIN_MSG_CLOUD)
+            return (lang.l(ll.WR_RAIN_MSG) % (nearest, precipitation['nearest']['distance']))
+        return lang.l(ll.WR_REPORT_NORAIN_MSG)
     
-    def getReportMsg(self, result, lang = Language.Eng):
-        try:
-            realtime = result['realtime']
-            defaultSkycon = realtime['skycon']
-            resultMsg = f"""
-    Here is the realtime weather for you:
-    {skycon[realtime['skycon']].value}\n
-    Temperature: {realtime['temperature']}°C, apparent: {realtime['apparent_temperature']}°C\n
-    Rain: {CaiyunService().get_rain_msg(realtime['precipitation'], defaultSkycon)}\n
-    Humidity: {realtime['humidity']*100}%\n
-    Air quality: {realtime['air_quality']['description']['usa']}, visibility: {realtime['visibility']}Km
-            """
+    def getReportMsg(self, result, userLang = Language.ENG):
+        # try:
+        lang = LANG(userLang)
+        realtime = result['realtime']
+        defaultSkycon = realtime['skycon']
+        resultMsg = (lang.l(ll.WR_REPORT_MSG) % 
+            (skycon[realtime['skycon']].value
+            , str(realtime['temperature'])
+            , str(realtime['apparent_temperature'])
+            , CaiyunService().get_rain_msg(realtime['precipitation'], defaultSkycon, lang)
+            , str(realtime['humidity']*100)
+            , realtime['air_quality']['description']['usa']
+            , str(realtime['visibility'])))
 
-            if(result["forecast_keypoint"]):
-                resultMsg += f"""\n{result["forecast_keypoint"]}"""
+        if(result["forecast_keypoint"]):
+            resultMsg += f"""\n{result["forecast_keypoint"]}"""
 
-            lastAlert = ""
-            if(len(result["alert"]["content"]) > 0):
-                alertMsg = "❗ ❗ ❗\n"
-                for alert in result["alert"]["content"]:
-                    desc = alert["description"]
-                    if(desc != lastAlert):
-                        alertMsg += desc + "\n"
-                        lastAlert = desc
-                resultMsg += f"""\n{alertMsg}"""
-                    
-            return resultMsg
-            
-        except Exception as ex:
-            logging.error(ex)
-            return "Sorry but something went wrong"
+        lastAlert = ""
+        if(len(result["alert"]["content"]) > 0):
+            alertMsg = "\n❗ ❗ ❗\n"
+            for alert in result["alert"]["content"]:
+                desc = alert["description"]
+                if(desc != lastAlert):
+                    alertMsg += desc + "\n"
+                    lastAlert = desc
+            resultMsg += f"""\n{alertMsg}"""
+                
+        return resultMsg
