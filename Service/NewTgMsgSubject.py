@@ -1,8 +1,8 @@
 from Abstraction.ObserverABC import ObserverABC
 from Abstraction.SubjectABC import SubjectABC
-from Service.Config import Config as conf
+from Service.ConfigService import Config as conf
 from Service.NewTgMsgObserver import NewTgMsgObserver
-from Instruction.Singlton import Singleton
+from Instruction.Singleton import Singleton
 import logging
 
 @Singleton

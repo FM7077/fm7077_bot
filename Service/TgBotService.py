@@ -1,6 +1,6 @@
 from Instruction.TgBot import TgBot
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler)
-from Instruction.Singlton import Singleton
+from Instruction.Singleton import Singleton
 import logging
 from .CaiyunService import CaiyunService
 from Model.Enum import Setting, TgCommand, skycon, TgCallBackType, LanguageList as ll
@@ -11,6 +11,7 @@ from Model.Keyboard import WRKeyboard
 from Service.UserService import UserService
 from Model.Language import LANG
 from Conversation.NewWeatherReportSub import NewWRSub
+from Model.DTO import Location
 
 @Singleton
 class TgBotService():
@@ -43,13 +44,15 @@ class TgBotService():
 
         cy = CaiyunService()
         location = update.message.location
-        result = cy.check_by_location(update.message.location)
-        resultMsg = cy.getReportMsg(result)
+        loc = Location(location.longitude, location.latitude)
+        result = cy.check_by_location(loc)
+        resultMsg = cy.getReportMsg(result, userLang)
 
         messageId = update.message.message_id
-        loc = str([location.latitude, location.longitude])
+        loc = str([loc.latitude, loc.longitude])
         replyMarkup = WRKeyboard(loc, lang).get()
         msg.edit_text(resultMsg, reply_markup=replyMarkup)
+
     def moreWeatherDetail(self, update, context):
         print(update)
         pass

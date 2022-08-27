@@ -1,5 +1,5 @@
-from .Singlton import Singleton
-from Service.Config import Config as conf
+from .Singleton import Singleton
+from Service.ConfigService import Config as conf
 from Model.Enum import ConfigKey
 from telegram.ext import (Updater)
 

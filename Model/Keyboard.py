@@ -18,11 +18,12 @@ class WRKeyboard():
 
 class Keyboard_Hour(): # 24 hours keyboard
     def __init__(self) -> None:
-        self.keyboard = [[0 for col in range (6)] for row in range (2)]
-        i = 1
+        self.keyboard = [[0 for col in range (6)] for row in range (4)]
+        i = 0
         for rowI, row in enumerate(self.keyboard):
             for colI, col in enumerate(row):
-                hi = InlineKeyboardButton(i, callback_data=f"{TgCallBackType.SUB_WR_SETH.value}_{i}")
+                showTxt = str(i).zfill(2)
+                hi = InlineKeyboardButton(showTxt, callback_data=f"{TgCallBackType.SUB_WR_SETH.value}_{showTxt}")
                 self.keyboard[rowI][colI] = hi
                 i += 1
     def get(self):
@@ -34,7 +35,8 @@ class Keyboard_CMin(): # step: 5 minutes keyboard
         i = 0
         for rowI, row in enumerate(self.keyboard):
             for colI, col in enumerate(row):
-                hi = InlineKeyboardButton(i, callback_data=f"{TgCallBackType.SUB_WR_SETM.value}_{i}")
+                showTxt = str(i).zfill(2)
+                hi = InlineKeyboardButton(showTxt, callback_data=f"{TgCallBackType.SUB_WR_SETM.value}_{showTxt}")
                 self.keyboard[rowI][colI] = hi
                 i += 5
     def get(self):

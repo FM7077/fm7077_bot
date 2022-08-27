@@ -1,4 +1,4 @@
-from Instruction.Singlton import Singleton
+from Instruction.Singleton import Singleton
 import configparser
 
 @Singleton

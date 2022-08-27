@@ -1,24 +1,25 @@
 from Model.Enum import ConfigKey, Language
-from .Config import Config as conf
+from .ConfigService import Config as conf
 import requests
 import json
 import logging
 from Model.Enum import skycon, LanguageList as ll
 from Model.Language import LANG
+from Model.DTO import Location
 
 class CaiyunService():
     def __init__(self) -> None:
         self.url = "https://api.caiyunapp.com/v2.6"
         c = conf()
         self.token = c.getByKey(ConfigKey.Tokens.value, ConfigKey.CaiyunWeather.value)
-    def check_by_location(self, location):
-        self.url += "/%s/%s/weather?alert=true&dailysteps=1&hourlysteps=24" % (self.token, str(location.longitude) + ',' + str(location.latitude))
-        x = requests.get(self.url)
+    def check_by_location(self, location: Location):
+        url = f"{self.url}/{self.token}/{location.longitude},{location.latitude}/weather?alert=true&dailysteps=1&hourlysteps=24"
+        x = requests.get(url)
         result = json.loads(x.text)
         logging.info("Request weather report success: %s" % (x.text))
         return result['result']
 
-    def get_rain_type(self, intensity, defaultSkycon): # https://docs.caiyunapp.com/docs/tables/precip/
+    def getRainType(self, intensity, defaultSkycon, lang): # https://docs.caiyunapp.com/docs/tables/precip/
         type = ''
         if(intensity >= 0.08 and intensity < 3.44):
             type = 'LIGHT'
@@ -30,47 +31,48 @@ class CaiyunService():
             type = 'STORM'
 
         if(type == ''):
-            return skycon[defaultSkycon].value
+            return lang.l(ll[skycon[defaultSkycon].name])
         if 'RAIN' in defaultSkycon:
             type += '_RAIN'
-            return skycon[type].value
+            return lang.l(ll[skycon[type].name])
         if 'SNOW' in defaultSkycon:
             type += '_SNOW'
-            return skycon[type].value
+            return lang.l(ll[skycon[type].name])
         else:
-            return skycon[defaultSkycon].value
+            return lang.l(ll[skycon[defaultSkycon].name])
 
-    def get_rain_msg(self, precipitation, defaultSkycon, lang):
-        nearest = ''
-        if(precipitation['local']['intensity'] >= 0.08):
-            return f"""Its {self.get_rain_type(precipitation['local']['intensity'], defaultSkycon)} ({precipitation['local']['intensity']}mm/h) now"""
-        elif(precipitation['nearest']['intensity'] >= 0.08):
-            nearest = self.get_rain_type(precipitation['nearest']['intensity'], defaultSkycon)
-            if 'RAIN' in nearest:
-                nearest = lang.l(ll.WR_RAIN_MSG_RAIN)
-            elif 'SNOW' in nearest:
-                nearest = lang.l(ll.WR_RAIN_MSG_SNOW)
+    def getRainMsg(self, precipitation, defaultSkycon, lang):
+        rainType = ''
+        intensity = precipitation['nearest']['intensity']
+        rainType = self.getRainType(precipitation['nearest']['intensity'], defaultSkycon, lang)
+        if(precipitation['local']['intensity'] >= 0.08): # local rain
+            return (lang.l(ll.WR_RAIN_MSG_LOCAL) % (rainType, intensity))
+        elif(precipitation['nearest']['intensity'] >= 0.08): # nearest rain
+            if 'RAIN' in rainType:
+                rainType = lang.l(ll.WR_RAIN_MSG_RAIN)
+            elif 'SNOW' in rainType:
+                rainType = lang.l(ll.WR_RAIN_MSG_SNOW)
             else:
-                nearest = lang.l(ll.WR_RAIN_MSG_CLOUD)
-            return (lang.l(ll.WR_RAIN_MSG) % (nearest, precipitation['nearest']['distance']))
-        return lang.l(ll.WR_REPORT_NORAIN_MSG)
+                rainType = lang.l(ll.WR_RAIN_MSG_CLOUD)
+            return (lang.l(ll.WR_RAIN_MSG) % (rainType, precipitation['nearest']['distance']))
+        return (lang.l(ll.WR_RAIN_MSG_NO) % (rainType)) # no rain
     
-    def getReportMsg(self, result, userLang = Language.ENG):
+    def getReportMsg(self, result, userLang):
         # try:
         lang = LANG(userLang)
         realtime = result['realtime']
         defaultSkycon = realtime['skycon']
         resultMsg = (lang.l(ll.WR_REPORT_MSG) % 
-            (skycon[realtime['skycon']].value
+            (lang.l(ll[skycon[realtime['skycon']].name])
             , str(realtime['temperature'])
             , str(realtime['apparent_temperature'])
-            , CaiyunService().get_rain_msg(realtime['precipitation'], defaultSkycon, lang)
+            , self.getRainMsg(realtime['precipitation'], defaultSkycon, lang)
             , str(realtime['humidity']*100)
             , realtime['air_quality']['description']['usa']
             , str(realtime['visibility'])))
 
         if(result["forecast_keypoint"]):
-            resultMsg += f"""\n{result["forecast_keypoint"]}"""
+            resultMsg += result["forecast_keypoint"]
 
         lastAlert = ""
         if(len(result["alert"]["content"]) > 0):
@@ -83,3 +85,14 @@ class CaiyunService():
             resultMsg += f"""\n{alertMsg}"""
                 
         return resultMsg
+
+    def getAlertMsg(self, result):
+        lastAlert = ""
+        if(len(result["alert"]["content"]) > 0):
+            alertMsg = "\n❗ ❗ ❗\n"
+            for alert in result["alert"]["content"]:
+                desc = alert["description"]
+                if(desc != lastAlert):
+                    alertMsg += desc + "\n"
+                    lastAlert = desc
+        return alertMsg
