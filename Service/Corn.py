@@ -1,3 +1,4 @@
+from Model.Enum import Setting
 from Model.PO import User, WeatherSub
 from Service.UserService import UserService
 from Service.WeatherSubService import WeatherSubService
@@ -7,6 +8,26 @@ from Model.DTO import Location, MsgToTG
 from Instruction.TgBot import TgBot
 import json
 from Service.NewTgMsgSubject import NewTgMsgSubject
+from datetime import datetime
+from Instruction.Utils import Utils
+from apscheduler.schedulers.background import BackgroundScheduler
+
+
+@Singleton
+class CornCore():
+    def __init__(self) -> None:
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.start()
+
+        self.WeatherReportService = WeatherReportService()
+    
+    def run(self):
+        self.scheduler.add_job(
+            self.WeatherReportService.run,
+            trigger='cron',
+            minute=f'*/{Setting.CheckWeatherSchedule.value}'
+            # second="*/20"
+        )
 
 @Singleton
 class WeatherReportService():
@@ -30,10 +51,22 @@ class WeatherReportService():
             loc = Location(ws.Longitude, ws.Latitude)
             result = self.cy.check_by_location(loc)
             resultMsg = self.cy.getReportMsg(result, userLang)
-            self.processAlert(user, ws, result)
-            self.processForecastKeypoing(user, ws, result)
+            isSentReport = self.processReport(user, ws, resultMsg)
+            self.processAlert(user, ws, result, isSentReport)
+            self.processForecastKeypoing(user, ws, result, isSentReport)
+
+    def processReport(self, user: User, weatherSub: WeatherSub, resultMsg):
+        nowTime = datetime.now().strftime("%H:%M")
+        nowTime = datetime.strptime(nowTime,"%H:%M").time()
+        reportTime = datetime.strptime(weatherSub.ReportTime,"%H:%M").time()
+        diffMin = Utils().MinusTime(nowTime, reportTime)
+        if(diffMin < Setting.CheckWeatherSchedule.value):
+            msgToTG = MsgToTG(user.TgChatID, resultMsg)
+            self.tgMsgSub.data = msgToTG
+            return True
+        return False
     
-    def processAlert(self, user: User, weatherSub: WeatherSub, result):
+    def processAlert(self, user: User, weatherSub: WeatherSub, result, isSentReport = False):
         newAlert = result["alert"]["content"]
         newAlertStr = json.dumps(newAlert)
         if(newAlertStr == weatherSub.LastAlert):
@@ -41,18 +74,18 @@ class WeatherReportService():
         alertMsg = self.cy.getAlertMsg(result)
         weatherSub.LastAlert = newAlertStr
         WeatherSubService().UpsertByTgID(weatherSub)
-        if(not alertMsg):
-            return
+
+        if(not alertMsg or isSentReport): return
         msgToTG = MsgToTG(user.TgChatID, alertMsg)
         self.tgMsgSub.data = msgToTG
-        # self.bot.send_message(chat_id=user.TgChatID, text=alertMsg)
     
-    def processForecastKeypoing(self, user: User, weatherSub: WeatherSub, result):
+    def processForecastKeypoing(self, user: User, weatherSub: WeatherSub, result, isSentReport = False):
         fk = result["forecast_keypoint"]
         if(fk == weatherSub.LastForecastKeyPoint):
             return
         weatherSub.LastForecastKeyPoint = fk
         WeatherSubService().UpsertByTgID(weatherSub)
+
+        if isSentReport: return
         msgToTG = MsgToTG(user.TgChatID, fk)
         self.tgMsgSub.data = msgToTG
-        self.bot.send_message(chat_id=user.TgChatID, text=fk)

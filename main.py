@@ -7,6 +7,7 @@ from Instruction.TgBot import TgBot
 from Service.TgBotService import TgBotService
 from sqlite_utils import Database
 from Model.Enum import Language, Setting
+from Service.Corn import CornCore
 
 def Initial():
     # init config
@@ -20,7 +21,12 @@ def Initial():
     newTgMsgSub = NewTgMsgSubject()
     newTgMsgSub.add(newTgMsgObs)
 
-    # init db
+    # corn
+    CornCore().run()
+
+
+# init db
+def InitDB():
     db = Database(Setting.DBName.value)
     db[Setting.DBTableUser.value].create({
         "id": str,
@@ -44,6 +50,7 @@ def Initial():
     }, pk="id", if_not_exists=True)
 
 if __name__ == "__main__":
+    InitDB()
     Initial()
     sub = NewTgMsgSubject()
 

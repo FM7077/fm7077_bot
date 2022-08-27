@@ -17,6 +17,8 @@ class Setting(Enum):
     
     MaxSubLimit = 5 # max subscription limit per user
 
+    CheckWeatherSchedule = 5 # period time to check weather, minute
+
 class skycon(Enum): # weather phenomenon https://docs.caiyunapp.com/docs/tables/skycon
     CLEAR_DAY = "CLEAR_DAY",
     CLEAR_NIGHT = "CLEAR_NIGHT"
