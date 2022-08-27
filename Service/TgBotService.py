@@ -30,7 +30,6 @@ class TgBotService():
         self.dispatcher.add_handler(CallbackQueryHandler(self.moreWeatherDetail, pattern=f"^{TgCallBackType.OPT_WR_START.value}"))
 
     def start(self, update, context):
-        self.upsertUser(update.message.from_user)
         logging.info("Receive user start command %s" % (update))
         user = update.message.from_user
         update.message.reply_text('Hi %s nice to see you' % (user.first_name))
