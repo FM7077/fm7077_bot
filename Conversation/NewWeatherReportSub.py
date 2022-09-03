@@ -29,7 +29,7 @@ class NewWRSub():
         sub.IsSubAlert = True
         context.user_data['sub_wr_data'] = sub
 
-        update.message.reply_text(lang.l(ll.SUB_WR_CHO_LOC) % (lang.l(ll.SUB_WR_ACT_SUB)))
+        update.message.reply_text(lang.l(ll.SUB_WR_CHO_LOC) % (lang.l(ll.SUB_WR_ACT_SUB), ""))
         return CHOOSE_LOC
     
     def updateSub(self, update, context):
@@ -128,7 +128,7 @@ class NewWRSub():
         subMsg = context.user_data['sub_wr_data']
         subMsg.UserID = userId
 
-        if None != subMsg.id:
+        if None != getattr(subMsg,'id', None):
             WeatherSubService().update(subMsg)
         else:
             WeatherSubService().upsertByTgID(subMsg)
