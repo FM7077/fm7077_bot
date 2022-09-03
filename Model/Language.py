@@ -1,5 +1,5 @@
 from enum import Enum
-from Model.Enum import Language as langE
+from Model.Enum import Language as langE, TgCommand
 
 class LANG():
     def __init__(self, lang = langE.ENG) -> None:
@@ -11,19 +11,23 @@ class LANG():
         return ENG[code.name].value # return english by default
 
 class ENG(Enum):
+    WELCOME = "Hi %s nice to meet you"
+
     OPT_WR_MINUTELY = "Minutely⏲"
     OPT_WR_HOURLY = "Hourly🕰️"
     OPT_WR_DAILY = "Daily 🗓️"
     OPT_WR_REALTIME = "Realtime"
 
-    SUB_WR_CHO_LOC = "Let me help you to subscribe the weather report.\n\nFirst, please send me the location. 📌"
+    SUB_WR_ACT_SUB = "subscribe the weather report"
+    SUB_WR_ACT_UPDATE = "update the subscription "
+    SUB_WR_CHO_LOC = "Let me help you to %s%s.\n\nFirst, please send me the location. 📌" # (action, Name)
     SUB_WR_SET_NAME = "Now please set the name"
     SUB_WR_EMP_NAME = "The name cant be empty please resend one"
     SUB_WR_CHO_TIME_Hour = "Now please set the report time _ _ : _ _ 🔔"
     SUB_WR_CHO_TIME_MINUTE = "Now please set the report time *%s* : _ _ 🔔" # (hour)
     SUB_WR_CHO_CONFIRM = "Please check the location and the time are correct. *%s* 🔎\n\nIf you want to change location or time, just input /cancel and resend /subweather." #(time)
     SUB_WR_SET = "Congratulation, the *subscription* %s is set.\nI'll sent you a daily report at *%s* ✔️" # (name, time)
-    SUB_WR_CANCEL = "No subscription will be set ❌"
+    SUB_WR_CANCEL = "No subscription will be set or changed ❌"
     SUB_WR_UNKNOWN_MSG = "You should finish the subscription or /cancel current job"
     SUB_WR_REACH_LIMIT = "Sorry, but you reach the subscription limit %s" # (limit)
 
@@ -40,7 +44,7 @@ Air quality: %s, visibility: %sKm\n""" # (skycon, temperature, apparent_temperat
     WR_RAIN_MSG_SNOW = "snow cloud ❄️"
     WR_RAIN_MSG_CLOUD = "cloud ☁️"
     
-    CLEAR_DAY = "Clear day ☀️",
+    CLEAR_DAY = "Clear day ☀️"
     CLEAR_NIGHT = "Clear night 🌕"
     PARTLY_CLOUDY_DAY = "Partly cloudy day 🌤️"
     PARTLY_CLOUDY_NIGHT = "Partly cloudy night ☁️🌓"
@@ -65,5 +69,20 @@ Air quality: %s, visibility: %sKm\n""" # (skycon, temperature, apparent_temperat
 
     ERR_MSG = "Sorry, it seems something went wrong"
 
-    BUT_CONFIRM = "Confirm"
-    BUT_CANCEL = "Cancel"
+    BTN_CONFIRM = "Confirm"
+    BTN_CANCEL = "Cancel"
+
+    NO_SUB = f"You have no subscription yet, /{TgCommand.SUBWEATHER.value} to subscribe one"
+    HAS_SUBS = "Here are your subscriptions:"
+    DEL_SUB = "Are you sure deleting?"
+    BTN_ED_SUB = "Edit ✍️"
+    BTN_DEL_SUB = "Delete 🗑️"
+    BTN_BACK_SUB_LIST = "<< Back to subscriptions"
+    BTN_DELSUB_CONFIRM = "Delete 🗑️"
+    BTN_DELSUB_CANCEL = "<< Cancel"
+    SUB_DETAIL = """Here is the info of %s\n
+Location: %s, %s\n
+Is send daily report: %s\n
+daily report time: %s\n
+Is subscribe weather alert: %s\n
+""" # (Name, longitude, latitude, IsSub, ReportTime, IsSubALret)

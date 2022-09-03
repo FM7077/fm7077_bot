@@ -5,7 +5,7 @@ from Model.Enum import Setting, TgCallBackType, TgCommand, Language as langE, La
 from Service.UserService import UserService
 from Service.WeatherSubService import WeatherSubService
 from Model.Language import LANG
-from Model.Keyboard import Keyboard_CMin, Keyboard_Hour, Keyboard_SubWR_Confirm
+from Model.Keyboard import Keyboards
 from Model.PO import WeatherSub
 
 CHOOSE_LOC, SET_NAME, CHOOSE_TIME_HOUR, CHOOSE_TIME_MINUTE, CONFIRM = range(5)
@@ -20,7 +20,7 @@ class NewWRSub():
         userLang = u.Language
         lang = LANG(userLang)
 
-        if WeatherSubService().IsReachLimit(u.id):
+        if WeatherSubService().isReachLimit(u.id):
             update.message.reply_text((lang.l(ll.SUB_WR_REACH_LIMIT) % (Setting.MaxSubLimit)))
             return ConversationHandler.END
 
@@ -29,7 +29,24 @@ class NewWRSub():
         sub.IsSubAlert = True
         context.user_data['sub_wr_data'] = sub
 
-        update.message.reply_text(lang.l(ll.SUB_WR_CHO_LOC))
+        update.message.reply_text(lang.l(ll.SUB_WR_CHO_LOC) % (lang.l(ll.SUB_WR_ACT_SUB)))
+        return CHOOSE_LOC
+    
+    def updateSub(self, update, context):
+        bot = TgBot().get_bot()
+        user = update.callback_query.from_user
+        userLang = UserService().getTgUserLang(user.id)
+        lang = LANG(userLang)
+        subid = update.callback_query.data.split(f"{TgCallBackType.SUB_WR_EDIT.value}_")[1]
+        sub = WeatherSubService().getByID(subid)
+        context.user_data['sub_wr_data'] = sub
+        
+        bot.edit_message_text(
+            text=(lang.l(ll.SUB_WR_CHO_LOC) % (lang.l(ll.SUB_WR_ACT_UPDATE), f"*{sub.Name}*")),
+            chat_id=update.callback_query.message.chat_id,
+            message_id=update.callback_query.message.message_id,
+            parse_mode= 'Markdown'
+        )
         return CHOOSE_LOC
     
     def chooseLoc(self, update, context):
@@ -54,7 +71,7 @@ class NewWRSub():
             return SET_NAME
         context.user_data['sub_wr_data'].Name = name
         
-        replyMarkup = Keyboard_Hour().get()
+        replyMarkup = Keyboards().get24HKB()
         update.message.reply_text(lang.l(ll.SUB_WR_CHO_TIME_Hour), reply_markup=replyMarkup)
         return CHOOSE_TIME_HOUR
     
@@ -67,7 +84,7 @@ class NewWRSub():
         hour = update.callback_query.data.split(f"{TgCallBackType.SUB_WR_SETH.value}_")[1]
         context.user_data['sub_wr_data'].ReportTime = hour
         
-        replyMarkup = Keyboard_CMin().get()
+        replyMarkup = Keyboards().getCMin()
         bot.edit_message_text(
             text=(lang.l(ll.SUB_WR_CHO_TIME_MINUTE) % (hour)),
             chat_id=update.callback_query.message.chat_id,
@@ -87,7 +104,7 @@ class NewWRSub():
         minute = update.callback_query.data.split(f"{TgCallBackType.SUB_WR_SETM.value}_")[1]
         context.user_data['sub_wr_data'].ReportTime += f":{minute}"
 
-        replyMarkup = Keyboard_SubWR_Confirm(userLang).get()
+        replyMarkup = Keyboards().getSubWRKB(userLang)
         bot.edit_message_text(
             text=(lang.l(ll.SUB_WR_CHO_CONFIRM) % (context.user_data['sub_wr_data'].ReportTime)),
             chat_id=update.callback_query.message.chat_id,
@@ -111,7 +128,10 @@ class NewWRSub():
         subMsg = context.user_data['sub_wr_data']
         subMsg.UserID = userId
 
-        WeatherSubService().UpsertByTgID(subMsg)
+        if None != subMsg.id:
+            WeatherSubService().update(subMsg)
+        else:
+            WeatherSubService().upsertByTgID(subMsg)
         name = subMsg.Name
         timeToShow = subMsg.ReportTime
         bot.edit_message_text(
@@ -123,7 +143,6 @@ class NewWRSub():
         return ConversationHandler.END
 
     def cancel(self, update, context):
-        bot = TgBot().get_bot()
         user = None
         rpl = None
         if(None != update.message):
@@ -140,6 +159,7 @@ class NewWRSub():
             userLang = UserService().getTgUserLang(user.id)
             lang = LANG(userLang)
         
+            bot = TgBot().get_bot()
             bot.edit_message_text(
                 text = (lang.l(ll.SUB_WR_CANCEL)),
                 chat_id=rpl.chat_id,
@@ -158,7 +178,7 @@ class NewWRSub():
     
     def getHandler(self):
         handler = ConversationHandler(
-            entry_points=[CommandHandler(TgCommand.SUBWEATHER.value, self.newSub)],
+            entry_points=[CommandHandler(TgCommand.SUBWEATHER.value, self.newSub), CallbackQueryHandler(self.updateSub, pattern=f"{TgCallBackType.SUB_WR_EDIT.value}")],
             states={
                 CHOOSE_LOC: [MessageHandler(Filters.location & ~Filters.command, self.chooseLoc), MessageHandler(Filters.all & ~Filters.command, self.IsInvalidInput)],
                 SET_NAME: [MessageHandler(Filters.text, self.setName), MessageHandler(Filters.all & ~Filters.command, self.IsInvalidInput)],

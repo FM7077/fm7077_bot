@@ -38,7 +38,7 @@ class WeatherReportService():
         pass
 
     def run(self):
-        subs = WeatherSubService().ListAll()
+        subs = WeatherSubService().listAll()
         wss = []
         for sub in subs:
             ws = WeatherSub(sub)
@@ -73,7 +73,7 @@ class WeatherReportService():
             return
         alertMsg = self.cy.getAlertMsg(result)
         weatherSub.LastAlert = newAlertStr
-        WeatherSubService().UpsertByTgID(weatherSub)
+        WeatherSubService().upsertByTgID(weatherSub)
 
         if(not alertMsg or isSentReport): return
         msgToTG = MsgToTG(user.TgChatID, alertMsg)
@@ -84,7 +84,7 @@ class WeatherReportService():
         if(fk == weatherSub.LastForecastKeyPoint):
             return
         weatherSub.LastForecastKeyPoint = fk
-        WeatherSubService().UpsertByTgID(weatherSub)
+        WeatherSubService().upsertByTgID(weatherSub)
 
         if isSentReport: return
         msgToTG = MsgToTG(user.TgChatID, fk)

@@ -47,12 +47,16 @@ class Language(Enum):
     CHS = "Chinese Simple"
 
 class LanguageList(Enum):
+    WELCOME = "welcome word"
+
     OPT_WR_MINUTELY = "weather report option: minutely"
     OPT_WR_HOURLY = "weather report option hourly"
     OPT_WR_DAILY = "weather report option daily"
     OPT_WR_REALTIME = "weather report option realtime"
 
-    SUB_WR_CHO_LOC = "subscribe weather: choose location"
+    SUB_WR_ACT_SUB = "subscribe"
+    SUB_WR_ACT_UPDATE = "update"
+    SUB_WR_CHO_LOC = "subscribe weather: choose location" # (action)
     SUB_WR_SET_NAME = "subscribe weather: set name"
     SUB_WR_EMP_NAME = "subscribe weather: name is empty"
     SUB_WR_CHO_TIME_Hour = "subscribe weather: choose hour"
@@ -96,8 +100,16 @@ class LanguageList(Enum):
 
     ERR_MSG = "error msg"
 
-    BUT_CONFIRM = "inline button: confirm"
-    BUT_CANCEL = "inline button: cancel"
+    BTN_CONFIRM = "inline button: confirm"
+    BTN_CANCEL = "inline button: cancel"
+
+    NO_SUB = "user no sub yet"
+    HAS_SUBS = "user has subs"
+    DEL_SUB = "delete sub"
+    BTN_ED_SUB = "Edit ✍️"
+    BTN_DEL_SUB = "Delete 🗑️"
+    BTN_BACK_SUB_LIST = "<< Back to subscriptions"
+    SUB_DETAIL = "sub detail"
 
 class TgCallBackType(Enum):
     OPT_WR_START = "OPTWR_"
@@ -111,9 +123,16 @@ class TgCallBackType(Enum):
     SUB_WR_SETM = "SUBWR_SETM"
     SUB_WR_CONFIRM = "SUBWR_CONFIRM"
     SUB_WR_CANCEL = "SUBWR_CANCEL"
+    SUB_WR_DETAIL = "SUBWR_DT"
+    SUB_WR_EDIT = "SUBWR_ED"
+    SUB_WR_DELETE = "SUBWR_DE"
+    LIST_SUBS = "LIST_SUBS"
+    SUB_WR_DEL_CONFIRM = "SUBWR_DC"
+    SUB_WR_DEL_CANCEL = "SUBWR_CD"
 
 class TgCommand(Enum):
     START = "start",
     CHECKRAIN = "checkRain"
     SUBWEATHER = "subweather"
     CANCEL = "cancel"
+    MYSUBS = "mysubs"

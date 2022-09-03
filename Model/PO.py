@@ -30,6 +30,7 @@ class WeatherSub():
         if d is not None:
             for key, value in d.items():
                 setattr(self, key, value)
+            self.id = d["id"]
 
     def IsInvalid(self):
         if not self.UserID or self.UserID.isspace():

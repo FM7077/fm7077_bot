@@ -62,12 +62,13 @@ class CaiyunService():
         lang = LANG(userLang)
         realtime = result['realtime']
         defaultSkycon = realtime['skycon']
+        sc = lang.l(ll[skycon[realtime['skycon']].name])
         resultMsg = (lang.l(ll.WR_REPORT_MSG) % 
             (lang.l(ll[skycon[realtime['skycon']].name])
             , str(realtime['temperature'])
             , str(realtime['apparent_temperature'])
             , self.getRainMsg(realtime['precipitation'], defaultSkycon, lang)
-            , str(realtime['humidity']*100)
+            , str(round(realtime['humidity']*100, 2))
             , realtime['air_quality']['description']['usa']
             , str(realtime['visibility'])))
 
