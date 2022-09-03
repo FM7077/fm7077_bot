@@ -12,6 +12,11 @@ class LANG():
 
 class ENG(Enum):
     WELCOME = "Hi %s nice to meet you"
+    HELP = f"""Hi %s let me show you what I can do:\n
+Send me a location directly, and I can tell you what weather forecast\n
+/{TgCommand.SUBWEATHER.value}: subscribe a new weather report\n
+/{TgCommand.MYSUBS.value}: check your subscriptions\n
+I can not only send you daily weather report, but also can send you alert when there is one"""
 
     OPT_WR_MINUTELY = "Minutely⏲"
     OPT_WR_HOURLY = "Hourly🕰️"

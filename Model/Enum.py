@@ -48,6 +48,7 @@ class Language(Enum):
 
 class LanguageList(Enum):
     WELCOME = "welcome word"
+    HELP = "help word"
 
     OPT_WR_MINUTELY = "weather report option: minutely"
     OPT_WR_HOURLY = "weather report option hourly"
@@ -136,3 +137,4 @@ class TgCommand(Enum):
     SUBWEATHER = "subweather"
     CANCEL = "cancel"
     MYSUBS = "mysubs"
+    HELP = "help"

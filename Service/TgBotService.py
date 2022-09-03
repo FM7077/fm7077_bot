@@ -26,6 +26,7 @@ class TgBotService():
         self.dispatcher.add_handler(CommandHandler(TgCommand.START.value, self.start))
         self.dispatcher.add_handler(CommandHandler(TgCommand.CHECKRAIN.value, self.checkRain))
         self.dispatcher.add_handler(CommandHandler(TgCommand.MYSUBS.value, self.listsubs))
+        self.dispatcher.add_handler(CommandHandler(TgCommand.HELP.value, self.help))
         self.dispatcher.add_handler(NewWRSub().getHandler())
 
         self.dispatcher.add_handler(MessageHandler(Filters.location, self.location))
@@ -207,3 +208,10 @@ class TgBotService():
             reply_markup=Keyboards().getDelSubKB(userLang, subid),
             parse_mode= 'Markdown'
         )
+    
+    def help(self, update, context):
+        user = update.message.from_user
+        userLang = UserService().getTgUserLang(user.id)
+        lang = LANG(userLang)
+
+        update.message.reply_text(lang.l(ll.HELP) % (user.first_name))

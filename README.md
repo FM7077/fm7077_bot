@@ -8,4 +8,6 @@ This is a simple framework for telegram bot. It can help you to build a bot to s
 
  > The bot support multi-language, but I not yet complete this function and enrich the languages, it will be my pleasure if you can help.
 
+ You may try this bot in https://t.me/tinsi_bot
+
 Weather data source: [Caiyun](https://docs.caiyunapp.com/)
